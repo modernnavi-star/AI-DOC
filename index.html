@@ -1,339 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#4f46e5">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>LetterCraft AI — Kannada & English Document Generator</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/icon-192.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;600;700&family=Roboto:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LetterCraft AI — Document Generator</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;600;700&family=Roboto:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <!-- Header -->
-    <header class="app-header">
-        <div class="brand">
-            <div class="brand-icon">LC</div>
-            <div class="brand-text">
-                <h1>LetterCraft AI</h1>
-                <p>Kannada & English Document Generator</p>
+<!-- ========== SIDEBAR (Recent Chats) ========== -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon">LC</div>
+            <div>
+                <div class="sidebar-brand-title">LetterCraft AI</div>
+                <div class="sidebar-brand-sub">Document Generator</div>
             </div>
         </div>
-        <div class="header-actions">
-            <select id="uiFont" class="select-xs">
-                <option value="font-mixed">Mixed (KN + EN)</option>
-                <option value="font-english">English / Serif</option>
-                <option value="font-kannada">Kannada</option>
-            </select>
-            <button onclick="toggleThemePicker()" class="btn-icon" title="Themes">🎨</button>
-            <button onclick="openAIComposer()" class="btn-primary bg-indigo-600 hover:bg-indigo-700">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/></svg>
-                AI Compose
-            </button>
-            <button onclick="exportPDF()" class="btn-primary bg-blue-600 hover:bg-blue-700">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                PDF
-            </button>
-        </div>
-    </header>
+        <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+    </div>
+    <button class="sidebar-new-chat" onclick="newChat()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/></svg>
+        New Chat
+    </button>
+    <div class="sidebar-section-title">Recent</div>
+    <div id="recentChatsList" class="sidebar-chats"></div>
+    <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" onclick="openSettings()">⚙️ Settings</button>
+        <button class="sidebar-footer-btn" onclick="openHelp()">❓ Help</button>
+    </div>
+</div>
 
-    <!-- Mobile Tab Navigation -->
-    <div class="mobile-tabs" id="mobileTabs">
-        <button class="mobile-tab active" data-tab="editor" onclick="switchMobileTab('editor')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Editor
+<!-- ========== MAIN APP ========== -->
+<div class="app-container" id="appContainer">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <button class="top-bar-menu" onclick="toggleSidebar()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <button class="mobile-tab" data-tab="preview" onclick="switchMobileTab('preview')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Preview
-        </button>
-    </div>
-
-    <!-- Main Layout -->
-    <div class="app-layout" id="appLayout">
-
-        <!-- Left Panel: Editor & Form -->
-        <div class="panel-editor left active" id="panelEditor">
-
-            <!-- PDF Upload -->
-            <div class="section-upload">
-                <div class="upload-row" style="display:flex;justify-content:space-between;align-items:center;">
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <label>Upload PDF</label>
-                        <span class="badge">Auto-extract</span>
-                    </div>
-                    <button onclick="clearAll()" class="btn-ghost" style="font-size:0.7rem;padding:0.3rem 0.5rem;">Clear</button>
-                </div>
-                <div style="margin-top:0.5rem;">
-                    <input type="file" id="pdfInput" accept=".pdf" class="file-input">
-                </div>
-            </div>
-
-            <!-- Template Editor -->
-            <div class="section-template">
-                <div class="template-header">
-                    <label>Document Template</label>
-                    <div class="meta">
-                        <span id="placeholderCount">0 fields</span>
-                        <button onclick="saveTemplate()">Save</button>
-                        <button onclick="loadSavedTemplate()">Load</button>
-                        <button onclick="openGrammarHelp()">Grammar</button>
-                    </div>
-                </div>
-                <div class="editor-wrapper">
-                    <textarea id="templateEditor" placeholder="Paste template, upload PDF, or use AI Compose...&#10;Use {{name}}, {{date}} for auto-fill.&#10;AI will auto-detect document type and format."></textarea>
-                </div>
-                <div class="action-bar">
-                    <button onclick="openAIComposer('generate')" class="btn-action bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100">✨ Generate</button>
-                    <button onclick="openAIComposer('correct')" class="btn-action bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">✓ Correct</button>
-                    <button onclick="openAIComposer('modify')" class="btn-action bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">⚡ Modify</button>
-                    <button onclick="openTemplateLibrary()" class="btn-action bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100">📚 Templates</button>
-                    <button onclick="openKannadaLibrary()" class="btn-action bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100">ಕನ್ನಡ</button>
-                </div>
-            </div>
-
-            <!-- Form Fill -->
-            <div class="section-form">
-                <div class="form-header">
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <label>Fill Data</label>
-                        <div class="badges">
-                            <span id="docTypeBadge" class="badge-doctype hidden"></span>
-                            <span id="themeBadge" class="badge-theme">Default</span>
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:0.4rem;">
-                        <button onclick="addNewRecord()" class="btn-add-record">+ Record</button>
-                        <button onclick="resetForm()" style="font-size:0.65rem;font-weight:600;color:#4f46e5;background:none;border:none;cursor:pointer;">Reset</button>
-                    </div>
-                </div>
-                <div class="form-container" id="formContainer">
-                    <div class="empty-state">
-                        <svg class="icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                        <span class="title">No fields yet</span>
-                        <span class="hint">Use AI Compose or add {{placeholders}} in the template</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Panel: Preview -->
-        <div class="panel-editor right" id="panelPreview">
-            <div class="panel-preview" style="flex:1;overflow-y:auto;padding:1rem;">
-                <div class="preview-header-bar">
-                    <span>Live Preview</span>
-                    <span id="themeBadgePreview" class="badge-theme">Default</span>
-                    <button onclick="window.print()" class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.5rem;">Print</button>
-                </div>
-                <div id="previewContainer" class="preview-sheet font-mixed whitespace-pre-wrap">
-                    <div class="empty-state" style="padding:4rem 1rem;">
-                        <svg class="icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        <span class="title" style="font-size:1.1rem;">Your document preview will appear here</span>
-                        <span class="hint" style="font-size:0.85rem;">Click AI Compose and describe your document, or load a template</span>
-                    </div>
-                </div>
-            </div>
+        <div class="top-bar-title" id="currentChatTitle">New Chat</div>
+        <div class="top-bar-actions">
+            <button class="top-bar-btn" onclick="toggleThemePicker()" title="Themes">🎨</button>
+            <button class="top-bar-btn" onclick="showPdfPreview()" title="PDF Preview">📄</button>
         </div>
     </div>
 
-    <!-- AI Composer Modal -->
-    <div class="modal-overlay" id="aiOverlay" onclick="closeAIComposer(event)">
-        <div class="backdrop" onclick="closeAIComposer()"></div>
-        <div class="modal-panel" id="aiPanel">
-            <div class="modal-header" style="background:linear-gradient(to right, #eef2ff, white);">
-                <div style="display:flex;align-items:center;gap:0.75rem;">
-                    <div style="width:32px;height:32px;background:linear-gradient(135deg, #4f46e5, #7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;">🤖</div>
-                    <div>
-                        <h3 style="font-size:0.9rem;">AI Document Composer</h3>
-                        <p style="font-size:0.7rem;color:#64748b;">Describe your document. AI creates format, fields & theme.</p>
-                    </div>
-                </div>
-                <button onclick="closeAIComposer()" class="close-btn">✕</button>
+    <!-- Chat Area -->
+    <div class="chat-container" id="chatContainer">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="welcome-screen">
+            <div class="welcome-icon">📝</div>
+            <div class="welcome-title">LetterCraft AI</div>
+            <div class="welcome-subtitle">Generate professional documents in Kannada & English</div>
+
+            <div class="suggestion-grid">
+                <button class="suggestion-card" onclick="startChat('Write a leave application in Kannada for 3 days')">
+                    <div class="suggestion-icon">✍️</div>
+                    <div class="suggestion-text">Leave Application in Kannada</div>
+                </button>
+                <button class="suggestion-card" onclick="startChat('Create a medical certificate for enteric fever')">
+                    <div class="suggestion-icon">🏥</div>
+                    <div class="suggestion-text">Medical Certificate</div>
+                </button>
+                <button class="suggestion-card" onclick="startChat('Official notice to staff about KAMS attendance')">
+                    <div class="suggestion-icon">📢</div>
+                    <div class="suggestion-text">Official Notice / Circular</div>
+                </button>
+                <button class="suggestion-card" onclick="startChat('Experience certificate for a teacher')">
+                    <div class="suggestion-icon">📜</div>
+                    <div class="suggestion-text">Experience Certificate</div>
+                </button>
+                <button class="suggestion-card" onclick="startChat('Complaint letter to BBMP about bad roads')">
+                    <div class="suggestion-icon">📨</div>
+                    <div class="suggestion-text">Complaint Letter</div>
+                </button>
+                <button class="suggestion-card" onclick="startChat('Rent agreement for house in Bangalore')">
+                    <div class="suggestion-icon">🏠</div>
+                    <div class="suggestion-text">Rent Agreement</div>
+                </button>
             </div>
-            <div style="padding:0.75rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;background:#f8fafc;">
-                <button onclick="toggleAISettings()" class="btn-small" style="font-size:0.7rem;">⚙️ Settings</button>
-                <div style="display:flex;align-items:center;gap:0.3rem;">
-                    <button onclick="setAIAction('generate')" id="btnModeGenerate" class="btn-mode active">Generate</button>
-                    <button onclick="setAIAction('correct')" id="btnModeCorrect" class="btn-mode">Correct</button>
-                    <button onclick="setAIAction('modify')" id="btnModeModify" class="btn-mode">Modify</button>
-                </div>
+
+            <div class="welcome-features">
+                <span>🎯 20+ Templates</span>
+                <span>🌐 Kannada + English</span>
+                <span>📄 PDF Export</span>
+                <span>🎙️ Voice Input</span>
             </div>
-                <div id="aiSettingsPanel" class="hidden" style="padding:1rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
-                <div style="font-size:0.75rem;color:#64748b;margin-bottom:0.75rem;font-weight:500;">⚙️ <strong>Optional:</strong> Add your AI API key for smarter generation. The app works great without it!</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
-                    <div>
-                        <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Endpoint</label>
-                        <input type="text" id="aiEndpoint" class="input-sm" value="https://api.openai.com/v1/chat/completions">
-                    </div>
-                    <div>
-                        <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">Model</label>
-                        <input type="text" id="aiModel" class="input-sm" value="gpt-4o-mini">
-                    </div>
-                </div>
-                <div style="margin-bottom:0.75rem;">
-                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Key (Optional)</label>
-                    <input type="password" id="aiApiKey" class="input-sm" placeholder="Leave blank for offline mode">
-                    <p style="font-size:0.6rem;color:#94a3b8;margin-top:0.25rem;">Stored only in browser. Supports OpenAI, OpenRouter, Groq. App works offline without key!</p>
-                </div>
-                <div style="display:flex;gap:0.5rem;">
-                    <button onclick="saveAISettings()" class="btn-small bg-blue-600 text-white" style="border:none;">Save</button>
-                    <button onclick="testAIConnection()" class="btn-small">Test</button>
-                </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="messagesArea" class="messages-area"></div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="input-bar-container">
+        <div class="input-bar">
+            <button class="input-attach" onclick="document.getElementById('pdfInput').click()" title="Upload PDF">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <input type="file" id="pdfInput" accept=".pdf" style="display:none">
+            <textarea id="chatInput" class="chat-input" rows="1" placeholder="Describe the document you need..."></textarea>
+            <button class="input-voice" id="voiceBtn" onclick="toggleVoiceChat()" title="Voice Input">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="input-send" id="sendBtn" onclick="sendChatMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+        </div>
+        <div class="input-disclaimer">LetterCraft AI can generate letters, certificates, notices, agreements & more. Use voice or type in Kannada/English.</div>
+    </div>
+</div>
+
+<!-- ========== PDF PREVIEW OVERLAY ========== -->
+<div class="overlay" id="pdfOverlay" onclick="closePdfPreview(event)">
+    <div class="overlay-backdrop" onclick="closePdfPreview()"></div>
+    <div class="pdf-panel">
+        <div class="pdf-panel-header">
+            <div class="pdf-panel-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Document Preview
             </div>
-            <div style="padding:0.75rem 1.25rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
-                <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.35rem;">Describe What You Need</label>
-                <textarea id="requirementInput" rows="3" class="input-sm" style="font-size:0.8rem;resize:none;" placeholder="Examples:&#10;• Leave application in Kannada for 3 days for a school teacher&#10;• Medical certificate for enteric fever patient&#10;• PHC official letter to Panchayat for demolition"></textarea>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">Lang:</span>
-                        <select id="reqLanguage" class="select-xs">
-                            <option value="auto">Auto-detect</option>
-                            <option value="kannada">Kannada</option>
-                            <option value="english">English</option>
-                            <option value="kannada-english">KN + EN</option>
-                        </select>
-                        <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">Tone:</span>
-                        <select id="reqTone" class="select-xs">
-                            <option value="formal">Formal</option>
-                            <option value="very-formal">Very Formal</option>
-                            <option value="semi-formal">Semi-formal</option>
-                            <option value="personal">Personal</option>
-                        </select>
-                    </div>
-                    <button onclick="sendRequirement()" id="sendReqBtn" class="btn-primary bg-indigo-600 hover:bg-indigo-700">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                        Generate
-                    </button>
-                </div>
+            <div style="display:flex;gap:0.5rem;">
+                <select id="uiFont" class="select-xs" onchange="changeFont()" style="margin-right:0.5rem;">
+                    <option value="font-mixed">Mixed</option>
+                    <option value="font-english">English</option>
+                    <option value="font-kannada">Kannada</option>
+                </select>
+                <button class="btn-small" onclick="exportPDF()">📥 Download PDF</button>
+                <button class="btn-small" onclick="closePdfPreview()">✕</button>
             </div>
-            <div class="chat-area" id="chatArea">
-                <div class="chat-welcome">
-                    <strong style="color:#4f46e5;">👋 Welcome to LetterCraft AI!</strong><br><br>
-                    Just tell me what document you need — <strong>no API key required!</strong> I'll find the best matching template from our built-in library.<br><br>
-                    I can:
-                    <ul style="list-style:disc;margin-left:1rem;margin-top:0.5rem;space-y:0.25rem;color:#475569;font-size:0.8rem;">
-                        <li>Detect the document type (letter, certificate, notice, agreement, etc.)</li>
-                        <li>Choose the right format and theme automatically</li>
-                        <li>Generate all necessary fields as <strong>{{placeholders}}</strong></li>
-                        <li>Apply correct Kannada or English grammar</li>
-                    </ul>
-                    <div style="margin-top:0.75rem;padding:0.5rem;background:#eef2ff;border:1px solid #c7d2fe;border-radius:0.5rem;font-size:0.75rem;color:#3730a3;font-weight:500;">
-                        💡 Be specific! Example: "Notice to staff about KAMS attendance marking from PHC Akkirampura"
-                    </div>
-                    <div style="margin-top:0.5rem;padding:0.5rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0.5rem;font-size:0.75rem;color:#166534;font-weight:500;">
-                        🚀 Works offline! Want smarter AI? Add your API key in ⚙️ Settings (OpenAI, OpenRouter, Groq).
-                    </div>
-                </div>
-            </div>
-            <div id="typingIndicator" class="hidden" style="padding:0 1.25rem 0.5rem;">
-                <div style="display:flex;align-items:center;gap:0.25rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:0.5rem 0.75rem;width:fit-content;">
-                    <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+        </div>
+        <div class="pdf-panel-body">
+            <div class="pdf-container" id="pdfPreviewContainer">
+                <div class="empty-state" style="padding:4rem 1rem;">
+                    <svg class="icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span style="font-size:1.1rem;">No document generated yet</span>
+                    <span style="font-size:0.85rem;">Ask me to create a letter, certificate, or notice</span>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Theme Picker Modal -->
-    <div class="modal-overlay" id="themeOverlay" onclick="closeThemePicker(event)">
-        <div class="backdrop" onclick="closeThemePicker()"></div>
-        <div class="modal-panel sm" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>Choose Theme</h3>
-                <button onclick="closeThemePicker()" class="close-btn">✕</button>
+<!-- ========== THEME PICKER OVERLAY ========== -->
+<div class="overlay" id="themeOverlay" onclick="closeThemePicker(event)">
+    <div class="overlay-backdrop" onclick="closeThemePicker()"></div>
+    <div class="theme-picker" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Choose Theme</h3>
+            <button class="close-btn" onclick="closeThemePicker()">✕</button>
+        </div>
+        <div class="theme-grid" id="themeGrid"></div>
+        <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e2e8f0;">
+            <label class="label-xs">Custom Header</label>
+            <input type="text" id="customHeader" oninput="applyTheme()" placeholder="Organization Name..." class="input-sm" style="margin-bottom:0.5rem;">
+            <label class="label-xs">Custom Footer</label>
+            <input type="text" id="customFooter" oninput="applyTheme()" placeholder="Contact info, address..." class="input-sm">
+        </div>
+    </div>
+</div>
+
+<!-- ========== TEMPLATE LIBRARY OVERLAY ========== -->
+<div class="overlay" id="templateLibraryOverlay" onclick="closeTemplateLibrary(event)">
+    <div class="overlay-backdrop" onclick="closeTemplateLibrary()"></div>
+    <div class="template-library-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>📚 Template Library</h3>
+            <button class="close-btn" onclick="closeTemplateLibrary()">✕</button>
+        </div>
+        <div class="modal-body" id="templateLibraryContent"></div>
+    </div>
+</div>
+
+<!-- ========== SETTINGS OVERLAY ========== -->
+<div class="overlay" id="settingsOverlay" onclick="closeSettings(event)">
+    <div class="overlay-backdrop" onclick="closeSettings()"></div>
+    <div class="modal-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>⚙️ Settings</h3>
+            <button class="close-btn" onclick="closeSettings()">✕</button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem;">
+            <div>
+                <label class="label-xs">AI API Endpoint (Optional)</label>
+                <input type="text" id="aiEndpoint" class="input-sm" value="https://api.openai.com/v1/chat/completions">
             </div>
-            <div class="modal-body">
-                <div class="theme-grid" id="themeGrid"></div>
-                <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e2e8f0;">
-                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.35rem;">Custom Header</label>
-                    <input type="text" id="customHeader" oninput="applyTheme()" placeholder="Organization Name..." class="input-sm" style="margin-bottom:0.5rem;">
-                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.35rem;">Custom Footer</label>
-                    <input type="text" id="customFooter" oninput="applyTheme()" placeholder="Contact info, address..." class="input-sm">
-                </div>
+            <div>
+                <label class="label-xs">AI Model (Optional)</label>
+                <input type="text" id="aiModel" class="input-sm" value="gpt-4o-mini">
+            </div>
+            <div>
+                <label class="label-xs">AI API Key (Optional — works offline without it)</label>
+                <input type="password" id="aiApiKey" class="input-sm" placeholder="Leave blank for offline mode">
+                <p style="font-size:0.7rem;color:#94a3b8;margin-top:0.25rem;">App works offline! Add key for smarter AI (OpenAI, OpenRouter, Groq).</p>
+            </div>
+            <div style="display:flex;gap:0.5rem;">
+                <button onclick="saveAISettings()" class="btn-small bg-blue-600 text-white" style="border:none;">Save</button>
+                <button onclick="testAIConnection()" class="btn-small">Test</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Kannada Library Modal -->
-    <div class="modal-overlay" id="kannadaOverlay" onclick="closeKannadaLibrary(event)">
-        <div class="backdrop" onclick="closeKannadaLibrary()"></div>
-        <div class="modal-panel lg" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>🌸 Kannada Document Library</h3>
-                <button onclick="closeKannadaLibrary()" class="close-btn">✕</button>
+<!-- ========== FORM EDITOR OVERLAY (Fill Fields) ========== -->
+<div class="overlay" id="formOverlay" onclick="closeFormEditor(event)">
+    <div class="overlay-backdrop" onclick="closeFormEditor()"></div>
+    <div class="form-editor-panel" onclick="event.stopPropagation()">
+        <div class="form-editor-header">
+            <div>
+                <h3>Fill Document Fields</h3>
+                <p style="font-size:0.75rem;color:#64748b;">Fill all {{placeholders}} to generate your document</p>
             </div>
-            <div class="modal-body" id="kannadaLibraryContent"></div>
-        </div>
-    </div>
-
-    <!-- Grammar Help Modal -->
-    <div class="modal-overlay" id="grammarOverlay" onclick="closeGrammarHelp(event)">
-        <div class="backdrop" onclick="closeGrammarHelp()"></div>
-        <div class="modal-panel lg" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>Grammar & Format Guide</h3>
-                <button onclick="closeGrammarHelp()" class="close-btn">✕</button>
-            </div>
-            <div class="modal-body" id="grammarContent"></div>
-        </div>
-    </div>
-
-    <!-- Template Library Modal -->
-    <div class="modal-overlay" id="templateLibraryOverlay" onclick="closeTemplateLibrary(event)">
-        <div class="backdrop" onclick="closeTemplateLibrary()"></div>
-        <div class="modal-panel lg" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>📚 Template Library</h3>
-                <button onclick="closeTemplateLibrary()" class="close-btn">✕</button>
-            </div>
-            <div class="modal-body" id="templateLibraryContent"></div>
-        </div>
-    </div>
-
-    <!-- Records / Batch Modal -->
-    <div class="modal-overlay" id="recordsOverlay" onclick="closeRecordsModal(event)">
-        <div class="backdrop" onclick="closeRecordsModal()"></div>
-        <div class="modal-panel" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>📋 Multi-Record Generator</h3>
-                <button onclick="closeRecordsModal()" class="close-btn">✕</button>
-            </div>
-            <div class="modal-body">
-                <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;">Fill in the common fields once, then add multiple records with varying data.</p>
-                <div id="recordsList" class="record-list">
-                    <div class="record-item">
-                        <div class="record-number">1</div>
-                        <div class="record-name">Default Record</div>
-                        <div class="record-actions">
-                            <button onclick="editRecord(0)" title="Edit">✏️</button>
-                            <button onclick="deleteRecord(0)" title="Delete">🗑️</button>
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top:1rem;display:flex;gap:0.5rem;">
-                    <button onclick="addNewRecord()" class="btn-primary bg-indigo-600" style="flex:1;">+ Add New Record</button>
-                    <button onclick="generateAllRecordsPDF()" class="btn-primary bg-emerald-600" style="flex:1;">📄 Generate All PDFs</button>
-                </div>
+            <div style="display:flex;gap:0.5rem;">
+                <button class="btn-small" onclick="openTemplateLibrary()">📚 Templates</button>
+                <button class="btn-small" onclick="closeFormEditor()">✕</button>
             </div>
         </div>
+        <div class="form-editor-body" id="formEditorBody"></div>
+        <div class="form-editor-footer">
+            <button class="btn-small" onclick="resetFormData()">🔄 Reset</button>
+            <button class="btn-primary" onclick="generateFromForm()">✨ Generate Document</button>
+        </div>
     </div>
+</div>
 
-    <script src="js/kannada-data.js"></script>
-    <script src="js/english-data.js"></script>
-    <script src="js/themes.js"></script>
-    <script src="js/pdf-handler.js"></script>
-    <script src="js/ai.js"></script>
-    <script src="js/app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js').catch(() => {});
-        }
-    </script>
+<script src="js/kannada-data.js"></script>
+<script src="js/english-data.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/pdf-handler.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+</script>
 </body>
 </html>
