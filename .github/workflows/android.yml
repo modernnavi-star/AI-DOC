@@ -29,8 +29,31 @@ jobs:
 
     - name: Fix Kotlin Dependency Conflict
       run: |
-        echo 'kotlin.stdlib.default.dependency=false' >> android/gradle.properties
-        sed -i 's/implementation \"org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21\"//g' android/app/build.gradle
+        # Add resolution strategy to root build.gradle to force Kotlin version
+        ROOT_BUILD="android/build.gradle"
+        if grep -q "allprojects" "$ROOT_BUILD"; then
+          sed -i '/allprojects {/,/}/c\
+allprojects {\
+    repositories {\
+        google()\
+        mavenCentral()\
+    }\
+    configurations.all {\
+        resolutionStrategy {\
+            force \"org.jetbrains.kotlin:kotlin-stdlib:1.8.22\"\
+            force \"org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22\"\
+        }\
+    }\
+}' "$ROOT_BUILD"
+        fi
+        # Also exclude in app build.gradle
+        APP_BUILD="android/app/build.gradle"
+        if grep -q "kotlin-stdlib-jdk8" "$APP_BUILD"; then
+          sed -i 's/implementation.*kotlin-stdlib-jdk8.*/implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"/g' "$APP_BUILD"
+        fi
+        cat android/gradle.properties
+        echo "---"
+        cat "$APP_BUILD" | grep -i kotlin || echo "No kotlin in app build.gradle"
 
     - name: Set up JDK 21
       uses: actions/setup-java@v4
