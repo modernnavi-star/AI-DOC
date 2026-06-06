@@ -12,188 +12,193 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;600;700&family=Roboto:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;600;700&family=Roboto:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
+<body>
 
     <!-- Header -->
     <header class="app-header">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">LC</div>
-            <div>
-                <h1 class="text-lg font-bold text-slate-900 leading-tight tracking-tight">LetterCraft AI</h1>
-                <p class="text-[11px] text-slate-500 font-medium">Kannada & English Document Generator</p>
+        <div class="brand">
+            <div class="brand-icon">LC</div>
+            <div class="brand-text">
+                <h1>LetterCraft AI</h1>
+                <p>Kannada & English Document Generator</p>
             </div>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            <select id="uiFont" class="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm font-medium">
-                <option value="font-mixed">Mixed (Kannada + English)</option>
+        <div class="header-actions">
+            <select id="uiFont" class="select-xs">
+                <option value="font-mixed">Mixed (KN + EN)</option>
                 <option value="font-english">English / Serif</option>
-                <option value="font-kannada">Kannada Preferred</option>
+                <option value="font-kannada">Kannada</option>
             </select>
-            <button onclick="toggleThemePicker()" class="btn-icon bg-white border border-slate-200 shadow-sm" title="Themes">🎨</button>
-            <button onclick="openAIComposer()" class="btn-primary bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200">
+            <button onclick="toggleThemePicker()" class="btn-icon" title="Themes">🎨</button>
+            <button onclick="openAIComposer()" class="btn-primary bg-indigo-600 hover:bg-indigo-700">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 12h18"/></svg>
                 AI Compose
             </button>
-            <button onclick="exportPDF()" class="btn-primary bg-blue-600 hover:bg-blue-700 shadow-blue-200">
+            <button onclick="exportPDF()" class="btn-primary bg-blue-600 hover:bg-blue-700">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 PDF
             </button>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <div class="flex flex-1 overflow-hidden">
-        
-        <!-- Left Panel -->
-        <div class="w-[46%] min-w-[340px] flex flex-col border-r border-slate-200 bg-white overflow-hidden relative">
-            
+    <!-- Mobile Tab Navigation -->
+    <div class="mobile-tabs" id="mobileTabs">
+        <button class="mobile-tab active" data-tab="editor" onclick="switchMobileTab('editor')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Editor
+        </button>
+        <button class="mobile-tab" data-tab="preview" onclick="switchMobileTab('preview')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview
+        </button>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="app-layout" id="appLayout">
+
+        <!-- Left Panel: Editor & Form -->
+        <div class="panel-editor left active" id="panelEditor">
+
             <!-- PDF Upload -->
-            <div class="p-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Upload PDF</label>
-                    <span class="text-[9px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-bold">Auto-extract</span>
+            <div class="section-upload">
+                <div class="upload-row" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <label>Upload PDF</label>
+                        <span class="badge">Auto-extract</span>
+                    </div>
+                    <button onclick="clearAll()" class="btn-ghost" style="font-size:0.7rem;padding:0.3rem 0.5rem;">Clear</button>
                 </div>
-                <div class="flex gap-2">
+                <div style="margin-top:0.5rem;">
                     <input type="file" id="pdfInput" accept=".pdf" class="file-input">
-                    <button onclick="clearAll()" class="btn-ghost text-xs px-2.5">Clear</button>
                 </div>
             </div>
 
             <!-- Template Editor -->
-            <div class="flex-1 flex flex-col min-h-0 border-b border-slate-200">
-                <div class="px-3.5 pt-2.5 pb-1 flex items-center justify-between">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Document Template</label>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] text-slate-400 font-mono" id="placeholderCount">0 fields</span>
-                        <button onclick="saveTemplate()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold">Save</button>
-                        <button onclick="loadSavedTemplate()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold">Load</button>
-                        <button onclick="openGrammarHelp()" class="text-[10px] text-emerald-600 hover:text-emerald-800 font-bold">Grammar</button>
+            <div class="section-template">
+                <div class="template-header">
+                    <label>Document Template</label>
+                    <div class="meta">
+                        <span id="placeholderCount">0 fields</span>
+                        <button onclick="saveTemplate()">Save</button>
+                        <button onclick="loadSavedTemplate()">Load</button>
+                        <button onclick="openGrammarHelp()">Grammar</button>
                     </div>
                 </div>
-                <div class="px-3.5 pb-2 flex-1 min-h-0">
-                    <textarea id="templateEditor" class="template-editor" placeholder="Paste template, upload PDF, or use AI Compose...&#10;Use {{name}}, {{date}} for auto-fill.&#10;AI will auto-detect document type and format."></textarea>
+                <div class="editor-wrapper">
+                    <textarea id="templateEditor" placeholder="Paste template, upload PDF, or use AI Compose...&#10;Use {{name}}, {{date}} for auto-fill.&#10;AI will auto-detect document type and format."></textarea>
                 </div>
-                <div class="px-3.5 pb-2 flex gap-2">
+                <div class="action-bar">
                     <button onclick="openAIComposer('generate')" class="btn-action bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100">✨ Generate</button>
-                <button onclick="openAIComposer('correct')" class="btn-action bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">✓ Correct</button>
-                <button onclick="openAIComposer('modify')" class="btn-action bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">⚡ Modify</button>
-                <button onclick="openTemplateLibrary()" class="btn-action bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100">📚 Templates</button>
-                <button onclick="openKannadaLibrary()" class="btn-action bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100">ಕನ್ನಡ</button>
+                    <button onclick="openAIComposer('correct')" class="btn-action bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">✓ Correct</button>
+                    <button onclick="openAIComposer('modify')" class="btn-action bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">⚡ Modify</button>
+                    <button onclick="openTemplateLibrary()" class="btn-action bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100">📚 Templates</button>
+                    <button onclick="openKannadaLibrary()" class="btn-action bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100">ಕನ್ನಡ</button>
                 </div>
             </div>
 
-            <!-- Input Form -->
-            <div class="h-[40%] min-h-[180px] flex flex-col min-h-0">
-                <div class="px-3.5 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Fill Data</label>
-                        <span id="docTypeBadge" class="hidden text-[9px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold"></span>
+            <!-- Form Fill -->
+            <div class="section-form">
+                <div class="form-header">
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <label>Fill Data</label>
+                        <div class="badges">
+                            <span id="docTypeBadge" class="badge-doctype hidden"></span>
+                            <span id="themeBadge" class="badge-theme">Default</span>
+                        </div>
                     </div>
-                    <button onclick="resetForm()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold">Reset</button>
+                    <div style="display:flex;align-items:center;gap:0.4rem;">
+                        <button onclick="addNewRecord()" class="btn-add-record">+ Record</button>
+                        <button onclick="resetForm()" style="font-size:0.65rem;font-weight:600;color:#4f46e5;background:none;border:none;cursor:pointer;">Reset</button>
+                    </div>
                 </div>
-                <div id="formContainer" class="flex-1 overflow-y-auto p-3.5 space-y-2.5">
-                    <div class="text-sm text-slate-400 text-center py-8 flex flex-col items-center gap-2">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                        Use <strong>AI Compose</strong> or add <span class="placeholder-badge">{{placeholders}}</span> to generate fields.
+                <div class="form-container" id="formContainer">
+                    <div class="empty-state">
+                        <svg class="icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        <span class="title">No fields yet</span>
+                        <span class="hint">Use AI Compose or add {{placeholders}} in the template</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Right Panel: Preview -->
-        <div class="flex-1 bg-slate-100 overflow-y-auto p-4 lg:p-6 flex flex-col items-center relative" id="previewWrapper">
-            <div class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur pb-2.5 w-full flex justify-center items-center gap-3">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Live Preview</span>
-                <span id="themeBadge" class="text-[9px] px-2 py-0.5 bg-white border border-slate-200 rounded-full text-slate-600 font-bold">Default</span>
-                <button onclick="window.print()" class="text-[10px] px-2.5 py-0.5 bg-white border border-slate-300 rounded-md hover:bg-slate-50 text-slate-600 font-medium shadow-sm">Print</button>
-            </div>
-            <div id="previewContainer" class="preview-sheet font-mixed whitespace-pre-wrap">
-                <div class="h-64 flex flex-col items-center justify-center text-slate-300 gap-3">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    <span class="text-lg font-medium">Your document preview will appear here</span>
-                    <span class="text-sm text-slate-400">Click <strong>AI Compose</strong> and describe your document</span>
+        <div class="panel-editor right" id="panelPreview">
+            <div class="panel-preview" style="flex:1;overflow-y:auto;padding:1rem;">
+                <div class="preview-header-bar">
+                    <span>Live Preview</span>
+                    <span id="themeBadgePreview" class="badge-theme">Default</span>
+                    <button onclick="window.print()" class="btn-ghost" style="font-size:0.65rem;padding:0.3rem 0.5rem;">Print</button>
+                </div>
+                <div id="previewContainer" class="preview-sheet font-mixed whitespace-pre-wrap">
+                    <div class="empty-state" style="padding:4rem 1rem;">
+                        <svg class="icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span class="title" style="font-size:1.1rem;">Your document preview will appear here</span>
+                        <span class="hint" style="font-size:0.85rem;">Click AI Compose and describe your document, or load a template</span>
+                    </div>
                 </div>
             </div>
-            <div class="h-10"></div>
         </div>
     </div>
 
-    <!-- AI Compose Modal -->
-    <div id="aiOverlay" class="fixed inset-0 z-50 hidden" onclick="closeAIComposer(event)">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-[3px]"></div>
-        <div class="ai-panel" id="aiPanel" onclick="event.stopPropagation()">
-            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-white rounded-t-xl">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-                    </div>
+    <!-- AI Composer Modal -->
+    <div class="modal-overlay" id="aiOverlay" onclick="closeAIComposer(event)">
+        <div class="backdrop" onclick="closeAIComposer()"></div>
+        <div class="modal-panel" id="aiPanel">
+            <div class="modal-header" style="background:linear-gradient(to right, #eef2ff, white);">
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <div style="width:32px;height:32px;background:linear-gradient(135deg, #4f46e5, #7c3aed);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;">🤖</div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-800">AI Document Composer</h3>
-                        <p class="text-[10px] text-slate-500">Describe your document. AI creates format, fields & theme.</p>
+                        <h3 style="font-size:0.9rem;">AI Document Composer</h3>
+                        <p style="font-size:0.7rem;color:#64748b;">Describe your document. AI creates format, fields & theme.</p>
                     </div>
                 </div>
-                <button onclick="closeAIComposer()" class="p-1.5 hover:bg-slate-200 rounded-lg text-slate-500 transition">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+                <button onclick="closeAIComposer()" class="close-btn">✕</button>
             </div>
-            
-            <div class="px-5 py-2 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleAISettings()" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:bg-slate-50 font-bold transition flex items-center gap-1">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        Settings
-                    </button>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-[9px] text-slate-400 font-medium">Mode:</span>
+            <div style="padding:0.75rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;background:#f8fafc;">
+                <button onclick="toggleAISettings()" class="btn-small" style="font-size:0.7rem;">⚙️ Settings</button>
+                <div style="display:flex;align-items:center;gap:0.3rem;">
                     <button onclick="setAIAction('generate')" id="btnModeGenerate" class="btn-mode active">Generate</button>
                     <button onclick="setAIAction('correct')" id="btnModeCorrect" class="btn-mode">Correct</button>
                     <button onclick="setAIAction('modify')" id="btnModeModify" class="btn-mode">Modify</button>
                 </div>
             </div>
-            
-            <!-- AI Settings Panel -->
-            <div id="aiSettingsPanel" class="border-b border-slate-100 bg-slate-50 hidden">
-                <div class="p-4 space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1 block">API Endpoint</label>
-                            <input type="text" id="aiEndpoint" class="input-sm" value="https://api.openai.com/v1/chat/completions">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1 block">Model</label>
-                            <input type="text" id="aiModel" class="input-sm" value="gpt-4o-mini">
-                        </div>
+            <div id="aiSettingsPanel" class="hidden" style="padding:1rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                    <div>
+                        <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Endpoint</label>
+                        <input type="text" id="aiEndpoint" class="input-sm" value="https://api.openai.com/v1/chat/completions">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1 block">API Key</label>
-                        <input type="password" id="aiApiKey" class="input-sm" placeholder="sk-... or sk-or-...">
-                        <p class="text-[9px] text-slate-400 mt-1">Stored only in browser. Supports OpenAI, OpenRouter, Groq.</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="saveAISettings()" class="btn-small bg-blue-600 text-white">Save</button>
-                        <button onclick="testAIConnection()" class="btn-small bg-white border border-slate-300 text-slate-700">Test</button>
+                        <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">Model</label>
+                        <input type="text" id="aiModel" class="input-sm" value="gpt-4o-mini">
                     </div>
                 </div>
+                <div style="margin-bottom:0.75rem;">
+                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Key</label>
+                    <input type="password" id="aiApiKey" class="input-sm" placeholder="sk-... or sk-or-...">
+                    <p style="font-size:0.6rem;color:#94a3b8;margin-top:0.25rem;">Stored only in browser. Supports OpenAI, OpenRouter, Groq.</p>
+                </div>
+                <div style="display:flex;gap:0.5rem;">
+                    <button onclick="saveAISettings()" class="btn-small bg-blue-600 text-white" style="border:none;">Save</button>
+                    <button onclick="testAIConnection()" class="btn-small">Test</button>
+                </div>
             </div>
-            
-            <!-- Requirement Input -->
-            <div class="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-white">
-                <label class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Describe What You Need</label>
-                <textarea id="requirementInput" rows="3" class="w-full text-sm p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none bg-white shadow-sm font-medium" placeholder="Examples:&#10;• 'Leave application in Kannada for 3 days for a school teacher'&#10;• 'Justification letter for late attendance in corporate office'&#10;• 'Experience certificate for software engineer with 5 years'&#10;• 'Rent agreement for house in Bangalore, 11 months'&#10;• 'Complaint to BBMP about bad roads in Kannada'&#10;• 'Add witness, notary and stamp section to current letter'">{{requirement}}</textarea>
-                <div class="flex items-center justify-between mt-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] text-slate-400 font-medium">Lang:</span>
+            <div style="padding:0.75rem 1.25rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
+                <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.35rem;">Describe What You Need</label>
+                <textarea id="requirementInput" rows="3" class="input-sm" style="font-size:0.8rem;resize:none;" placeholder="Examples:&#10;• Leave application in Kannada for 3 days for a school teacher&#10;• Medical certificate for enteric fever patient&#10;• PHC official letter to Panchayat for demolition"></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">Lang:</span>
                         <select id="reqLanguage" class="select-xs">
                             <option value="auto">Auto-detect</option>
                             <option value="kannada">Kannada</option>
                             <option value="english">English</option>
-                            <option value="kannada-english">Kannada + English</option>
+                            <option value="kannada-english">KN + EN</option>
                         </select>
-                        <span class="text-[9px] text-slate-400 font-medium ml-2">Tone:</span>
+                        <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">Tone:</span>
                         <select id="reqTone" class="select-xs">
                             <option value="formal">Formal</option>
                             <option value="very-formal">Very Formal</option>
@@ -201,97 +206,116 @@
                             <option value="personal">Personal</option>
                         </select>
                     </div>
-                    <button onclick="sendRequirement()" id="sendReqBtn" class="btn-primary bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200">
+                    <button onclick="sendRequirement()" id="sendReqBtn" class="btn-primary bg-indigo-600 hover:bg-indigo-700">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                         Generate
                     </button>
                 </div>
             </div>
-            
-            <!-- Chat / Result Area -->
-            <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white min-h-0">
+            <div class="chat-area" id="chatArea">
                 <div class="chat-welcome">
-                    <strong class="text-indigo-700">👋 Welcome to LetterCraft AI!</strong><br><br>
+                    <strong style="color:#4f46e5;">👋 Welcome to LetterCraft AI!</strong><br><br>
                     Just tell me what document you need. I'll:
-                    <ul class="list-disc ml-4 mt-1.5 space-y-1 text-slate-600 text-[13px]">
-                        <li>Detect the document type (letter, application, certificate, agreement, notice, etc.)</li>
+                    <ul style="list-style:disc;margin-left:1rem;margin-top:0.5rem;space-y:0.25rem;color:#475569;font-size:0.8rem;">
+                        <li>Detect the document type (letter, certificate, agreement, etc.)</li>
                         <li>Choose the right format and theme automatically</li>
                         <li>Generate all necessary fields as <strong>{{placeholders}}</strong></li>
-                        <li>Apply correct Kannada or English grammar and formal structure</li>
+                        <li>Apply correct Kannada or English grammar</li>
                     </ul>
-                    <div class="mt-3 p-2.5 bg-indigo-50 rounded-lg border border-indigo-100 text-[12px] text-indigo-800 font-medium">
-                        💡 Be specific! Include purpose, recipient, organization, dates, and language preference.
+                    <div style="margin-top:0.75rem;padding:0.5rem;background:#eef2ff;border:1px solid #c7d2fe;border-radius:0.5rem;font-size:0.75rem;color:#3730a3;font-weight:500;">
+                        💡 Be specific! Include purpose, recipient, dates, and language preference.
                     </div>
                 </div>
             </div>
-            
-            <div id="typingIndicator" class="hidden px-4 pb-1">
-                <div class="chat-bubble ai flex items-center gap-1 w-fit">
+            <div id="typingIndicator" class="hidden" style="padding:0 1.25rem 0.5rem;">
+                <div style="display:flex;align-items:center;gap:0.25rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:0.5rem 0.75rem;width:fit-content;">
                     <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Theme Picker Overlay -->
-    <div id="themeOverlay" class="fixed inset-0 z-50 hidden" onclick="closeThemePicker(event)">
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
-        <div class="theme-picker" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-slate-800">Choose Theme</h3>
-                <button onclick="closeThemePicker()" class="p-1 hover:bg-slate-100 rounded text-slate-500">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+    <!-- Theme Picker Modal -->
+    <div class="modal-overlay" id="themeOverlay" onclick="closeThemePicker(event)">
+        <div class="backdrop" onclick="closeThemePicker()"></div>
+        <div class="modal-panel sm" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Choose Theme</h3>
+                <button onclick="closeThemePicker()" class="close-btn">✕</button>
             </div>
-            <div class="grid grid-cols-2 gap-2" id="themeGrid"></div>
-            <div class="pt-3 mt-3 border-t border-slate-100 space-y-2">
-                <label class="text-[10px] font-bold text-slate-600 uppercase block">Custom Header</label>
-                <input type="text" id="customHeader" oninput="applyTheme()" placeholder="Organization Name..." class="input-sm">
-                <label class="text-[10px] font-bold text-slate-600 uppercase block">Custom Footer</label>
-                <input type="text" id="customFooter" oninput="applyTheme()" placeholder="Contact info, address..." class="input-sm">
+            <div class="modal-body">
+                <div class="theme-grid" id="themeGrid"></div>
+                <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e2e8f0;">
+                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.35rem;">Custom Header</label>
+                    <input type="text" id="customHeader" oninput="applyTheme()" placeholder="Organization Name..." class="input-sm" style="margin-bottom:0.5rem;">
+                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.35rem;">Custom Footer</label>
+                    <input type="text" id="customFooter" oninput="applyTheme()" placeholder="Contact info, address..." class="input-sm">
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Kannada Library Modal -->
-    <div id="kannadaOverlay" class="fixed inset-0 z-50 hidden" onclick="closeKannadaLibrary(event)">
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
-        <div class="kannada-panel" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">🌸 Kannada Document Library</h3>
-                <button onclick="closeKannadaLibrary()" class="p-1 hover:bg-slate-100 rounded text-slate-500">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+    <div class="modal-overlay" id="kannadaOverlay" onclick="closeKannadaLibrary(event)">
+        <div class="backdrop" onclick="closeKannadaLibrary()"></div>
+        <div class="modal-panel lg" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>🌸 Kannada Document Library</h3>
+                <button onclick="closeKannadaLibrary()" class="close-btn">✕</button>
             </div>
-            <div class="space-y-3 overflow-y-auto max-h-[60vh]" id="kannadaLibraryContent"></div>
+            <div class="modal-body" id="kannadaLibraryContent"></div>
         </div>
     </div>
 
     <!-- Grammar Help Modal -->
-    <div id="grammarOverlay" class="fixed inset-0 z-50 hidden" onclick="closeGrammarHelp(event)">
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
-        <div class="grammar-panel" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-slate-800">Grammar & Format Guide</h3>
-                <button onclick="closeGrammarHelp()" class="p-1 hover:bg-slate-100 rounded text-slate-500">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+    <div class="modal-overlay" id="grammarOverlay" onclick="closeGrammarHelp(event)">
+        <div class="backdrop" onclick="closeGrammarHelp()"></div>
+        <div class="modal-panel lg" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Grammar & Format Guide</h3>
+                <button onclick="closeGrammarHelp()" class="close-btn">✕</button>
             </div>
-            <div class="space-y-3 overflow-y-auto max-h-[60vh]" id="grammarContent"></div>
+            <div class="modal-body" id="grammarContent"></div>
         </div>
     </div>
 
     <!-- Template Library Modal -->
-    <div id="templateLibraryOverlay" class="fixed inset-0 z-50 hidden" onclick="closeTemplateLibrary(event)">
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
-        <div class="template-library-panel" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">📚 Template Library</h3>
-                <button onclick="closeTemplateLibrary()" class="p-1 hover:bg-slate-100 rounded text-slate-500">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+    <div class="modal-overlay" id="templateLibraryOverlay" onclick="closeTemplateLibrary(event)">
+        <div class="backdrop" onclick="closeTemplateLibrary()"></div>
+        <div class="modal-panel lg" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📚 Template Library</h3>
+                <button onclick="closeTemplateLibrary()" class="close-btn">✕</button>
             </div>
-            <div class="space-y-3 overflow-y-auto max-h-[60vh]" id="templateLibraryContent"></div>
+            <div class="modal-body" id="templateLibraryContent"></div>
+        </div>
+    </div>
+
+    <!-- Records / Batch Modal -->
+    <div class="modal-overlay" id="recordsOverlay" onclick="closeRecordsModal(event)">
+        <div class="backdrop" onclick="closeRecordsModal()"></div>
+        <div class="modal-panel" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📋 Multi-Record Generator</h3>
+                <button onclick="closeRecordsModal()" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;">Fill in the common fields once, then add multiple records with varying data.</p>
+                <div id="recordsList" class="record-list">
+                    <div class="record-item">
+                        <div class="record-number">1</div>
+                        <div class="record-name">Default Record</div>
+                        <div class="record-actions">
+                            <button onclick="editRecord(0)" title="Edit">✏️</button>
+                            <button onclick="deleteRecord(0)" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+                    <button onclick="addNewRecord()" class="btn-primary bg-indigo-600" style="flex:1;">+ Add New Record</button>
+                    <button onclick="generateAllRecordsPDF()" class="btn-primary bg-emerald-600" style="flex:1;">📄 Generate All PDFs</button>
+                </div>
+            </div>
         </div>
     </div>
 
