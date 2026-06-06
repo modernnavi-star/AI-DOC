@@ -21,7 +21,9 @@ jobs:
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
-        echo '{"appId":"com.lettercraft.ai","appName":"LetterCraft AI","webDir":".","bundledWebRuntime":false}' > capacitor.config.json
+        mkdir -p www
+        cp -r index.html css js assets manifest.json service-worker.js www/
+        echo '{"appId":"com.lettercraft.ai","appName":"LetterCraft AI","webDir":"www","bundledWebRuntime":false}' > capacitor.config.json
         npx cap add android
         npx cap sync
 
