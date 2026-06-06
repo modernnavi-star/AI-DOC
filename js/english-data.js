@@ -362,6 +362,37 @@ Contact: {{phone}}
 Email: {{email}}`
         },
 
+        notice: {
+            name: 'Official Notice / Circular',
+            category: 'Official & Government',
+            language: 'english',
+            theme: 'government',
+            template: `Date: {{date}}
+
+To,
+{{recipient_name}}
+{{recipient_designation}}
+{{department}}
+{{organization}}
+
+Subject: {{subject}}
+
+Dear {{recipient_name}},
+
+{{body}}
+
+All concerned staff are hereby instructed to take this notice seriously and comply with the instructions immediately. Non-compliance will be viewed seriously and necessary disciplinary action will be initiated as per the rules and regulations.
+
+This is for your information and necessary action.
+
+Yours faithfully,
+{{sender_name}}
+{{sender_designation}}
+{{sender_office}}
+{{sender_address}}
+Contact: {{phone}}`
+        },
+
         officialLetter: {
             name: 'Official Government Letter (PHC / Panchayat)',
             category: 'Official & Government',
@@ -599,7 +630,8 @@ Yours faithfully,
         application: ['application', 'apply', 'request form', 'job application', 'admission', 'college application'],
         resignation: ['resign', 'resignation', 'quit', 'notice', 'relieving', 'separation', 'ರಾಜಿನಾಮೆ'],
         offer: ['offer', 'appointment', 'joining', 'employment offer', 'job offer', 'hiring'],
-        officialLetter: ['official letter', 'government letter', 'panchayat', 'demolition', 'department letter', 'memo', 'official correspondence', 'secretariat', 'order', 'circular', 'phc', 'primary health centre', 'bdo', 'tahsildar', 'dc office', 'gram panchayat', 'health department'],
+        officialLetter: ['official letter', 'government letter', 'panchayat', 'demolition', 'department letter', 'memo', 'official correspondence', 'secretariat', 'order', 'phc', 'primary health centre', 'bdo', 'tahsildar', 'dc office', 'gram panchayat', 'health department'],
+        notice: ['notice', 'circular', 'staff notice', 'memo', 'office order', 'instruction', 'attendance', 'kams', 'seriously', 'mark attendance', 'staff memo', 'disciplinary', 'warning', 'all staff'],
         medicalCertificate: ['medical certificate', 'justification letter', 'admission', 'discharge', 'diagnosis', 'hospital', 'enteric', 'fever', 'patient', 'medical justification', 'health certificate', 'doctor', 'provisional diagnosis', 'medical', 'suffering', 'symptoms', 'ward charges', 'treatment'],
         medicalLabReport: ['lab report', 'laboratory', 'investigation', 'blood test', 'diagnostic', 'fbs', 'ppbs', 'haemoglobin', 'widal', 'dengue', 'urine routine', 'sputum', 'afb', 'blood group', 'urine sugar', 'pus cells', 'epithelial', 'ns1', 'hb', 'hcv', 'hbsag'],
         governmentLetterhead: ['letterhead', 'memo head', 'reference number', 'header', 'official header', 'reference no'],

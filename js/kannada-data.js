@@ -303,6 +303,37 @@ const KANNADA_KNOWLEDGE = {
 ದೂರವಾಣಿ: {{phone}}`
         },
 
+        notice: {
+            name: 'Official Notice / Circular (ಅಧಿಕೃತ ನೋಟಿಸ್ / ಸುತ್ತೋಲೆ)',
+            category: 'Official & Government',
+            language: 'kannada',
+            theme: 'government',
+            template: `ದಿನಾಂಕ: {{date}}
+
+ಪ್ರತಿ,
+{{recipient_name}}
+{{recipient_designation}}
+{{department}}
+{{organization}}
+
+ವಿಷಯ: {{subject}}
+
+ಮಾನ್ಯ {{recipient_name}},
+
+{{body}}
+
+ಎಲ್ಲಾ ಸಂಬಂಧಪಟ್ಟ ಸಿಬ್ಬಂದಿಗಳು ಈ ನೋಟಿಸ್ ಅನ್ನು ಗಂಭೀರವಾಗಿ ತೆಗೆದುಕೊಂಡು ತಕ್ಷಣ ಅನುಸರಣೆ ಮಾಡಬೇಕೆಂದು ಸೂಚಿಸಲಾಗಿದೆ. ಅನುಸರಣೆ ಇಲ್ಲದಿದ್ದರೆ, ನಿಯಮಗಳ ಪ್ರಕಾರ ಅಗತ್ಯ ಕ್ರಮ ಕೈಗೊಳ್ಳಲಾಗುವುದು.
+
+ಮಾಹಿತಿಗಾಗಿ ಮತ್ತು ಅಗತ್ಯ ಕ್ರಮಕ್ಕಾಗಿ.
+
+ವಿಶ್ವಾಸದಿಂದ,
+{{sender_name}}
+{{sender_designation}}
+{{sender_office}}
+{{sender_address}}
+ದೂರವಾಣಿ: {{phone}}`
+        },
+
         officialLetter: {
             name: 'Official Government Letter (ಸರ್ಕಾರಿ ಪತ್ರ — ಪಂಚಾಯಿತಿ / PHC)',
             category: 'Official & Government',

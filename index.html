@@ -165,7 +165,8 @@
                     <button onclick="setAIAction('modify')" id="btnModeModify" class="btn-mode">Modify</button>
                 </div>
             </div>
-            <div id="aiSettingsPanel" class="hidden" style="padding:1rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
+                <div id="aiSettingsPanel" class="hidden" style="padding:1rem;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
+                <div style="font-size:0.75rem;color:#64748b;margin-bottom:0.75rem;font-weight:500;">⚙️ <strong>Optional:</strong> Add your AI API key for smarter generation. The app works great without it!</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
                     <div>
                         <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Endpoint</label>
@@ -177,9 +178,9 @@
                     </div>
                 </div>
                 <div style="margin-bottom:0.75rem;">
-                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Key</label>
-                    <input type="password" id="aiApiKey" class="input-sm" placeholder="sk-... or sk-or-...">
-                    <p style="font-size:0.6rem;color:#94a3b8;margin-top:0.25rem;">Stored only in browser. Supports OpenAI, OpenRouter, Groq.</p>
+                    <label style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:0.25rem;">API Key (Optional)</label>
+                    <input type="password" id="aiApiKey" class="input-sm" placeholder="Leave blank for offline mode">
+                    <p style="font-size:0.6rem;color:#94a3b8;margin-top:0.25rem;">Stored only in browser. Supports OpenAI, OpenRouter, Groq. App works offline without key!</p>
                 </div>
                 <div style="display:flex;gap:0.5rem;">
                     <button onclick="saveAISettings()" class="btn-small bg-blue-600 text-white" style="border:none;">Save</button>
@@ -215,15 +216,19 @@
             <div class="chat-area" id="chatArea">
                 <div class="chat-welcome">
                     <strong style="color:#4f46e5;">👋 Welcome to LetterCraft AI!</strong><br><br>
-                    Just tell me what document you need. I'll:
+                    Just tell me what document you need — <strong>no API key required!</strong> I'll find the best matching template from our built-in library.<br><br>
+                    I can:
                     <ul style="list-style:disc;margin-left:1rem;margin-top:0.5rem;space-y:0.25rem;color:#475569;font-size:0.8rem;">
-                        <li>Detect the document type (letter, certificate, agreement, etc.)</li>
+                        <li>Detect the document type (letter, certificate, notice, agreement, etc.)</li>
                         <li>Choose the right format and theme automatically</li>
                         <li>Generate all necessary fields as <strong>{{placeholders}}</strong></li>
                         <li>Apply correct Kannada or English grammar</li>
                     </ul>
                     <div style="margin-top:0.75rem;padding:0.5rem;background:#eef2ff;border:1px solid #c7d2fe;border-radius:0.5rem;font-size:0.75rem;color:#3730a3;font-weight:500;">
-                        💡 Be specific! Include purpose, recipient, dates, and language preference.
+                        💡 Be specific! Example: "Notice to staff about KAMS attendance marking from PHC Akkirampura"
+                    </div>
+                    <div style="margin-top:0.5rem;padding:0.5rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:0.5rem;font-size:0.75rem;color:#166534;font-weight:500;">
+                        🚀 Works offline! Want smarter AI? Add your API key in ⚙️ Settings (OpenAI, OpenRouter, Groq).
                     </div>
                 </div>
             </div>

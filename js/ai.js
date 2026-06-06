@@ -1,5 +1,5 @@
 // ===========================
-// LetterCraft AI - AI Integration
+// LetterCraft AI - AI Integration (with offline fallback)
 // ===========================
 
 let aiAction = 'generate';
@@ -11,18 +11,15 @@ let aiConfig = {
 
 function openAIComposer(action) {
     if (action) setAIAction(action);
-    const overlay = document.getElementById('aiOverlay');
-    const panel = document.getElementById('aiPanel');
-    overlay.classList.remove('hidden');
-    setTimeout(() => panel.classList.add('open'), 10);
+    document.getElementById('aiOverlay').classList.add('active');
+    document.getElementById('aiPanel').classList.add('open');
     document.getElementById('requirementInput').focus();
 }
 
 function closeAIComposer(e) {
-    if (e && e.target !== document.getElementById('aiOverlay') && e.target !== document.getElementById('aiBackdrop')) return;
-    const panel = document.getElementById('aiPanel');
-    panel.classList.remove('open');
-    setTimeout(() => document.getElementById('aiOverlay').classList.add('hidden'), 300);
+    if (e && e.target !== document.getElementById('aiOverlay') && !e.target.classList.contains('backdrop')) return;
+    document.getElementById('aiOverlay').classList.remove('active');
+    document.getElementById('aiPanel').classList.remove('open');
 }
 
 function toggleAISettings() {
@@ -59,11 +56,8 @@ function setAIAction(action) {
     ['generate', 'correct', 'modify'].forEach(a => {
         const btn = document.getElementById('btnMode' + a.charAt(0).toUpperCase() + a.slice(1));
         if (!btn) return;
-        if (a === action) {
-            btn.className = 'btn-mode active';
-        } else {
-            btn.className = 'btn-mode';
-        }
+        if (a === action) { btn.className = 'btn-mode active'; }
+        else { btn.className = 'btn-mode'; }
     });
     const placeholders = {
         generate: 'Describe the document you need...',
@@ -73,16 +67,126 @@ function setAIAction(action) {
     document.getElementById('requirementInput').placeholder = placeholders[action];
 }
 
+// ===========================
+// LOCAL TEMPLATE MATCHER (No API needed)
+// ===========================
+function findBestTemplate(text) {
+    const lower = text.toLowerCase();
+    const allTemplates = { ...ENGLISH_KNOWLEDGE.templates, ...KANNADA_KNOWLEDGE.templates };
+
+    const scores = {};
+    Object.entries(allTemplates).forEach(([key, tmpl]) => {
+        let score = 0;
+        const nameLower = tmpl.name.toLowerCase();
+        const templateLower = tmpl.template.toLowerCase();
+
+        // Check keywords in all docTypeKeywords
+        const keywords = ENGLISH_KNOWLEDGE.docTypeKeywords[key] || [];
+        keywords.forEach(kw => { if (lower.includes(kw)) score += 3; });
+
+        // Check name matches
+        if (nameLower.includes(lower.substring(0, 15))) score += 5;
+
+        // Check common words
+        const words = lower.split(/\s+/);
+        words.forEach(w => {
+            if (w.length > 3 && templateLower.includes(w)) score += 1;
+        });
+
+        scores[key] = score;
+    });
+
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    return sorted[0][1] > 0 ? sorted[0][0] : null;
+}
+
+function generateLocalResponse(text, language) {
+    const bestKey = findBestTemplate(text);
+    if (!bestKey) {
+        return {
+            reply: `I couldn't find a perfect match for your request. Here are some suggestions:\n\n**Try these templates:**\n- 📚 Open **Template Library** from the main screen\n- 🌸 Try **Kannada Library** for Kannada documents\n- ✨ Or add an **AI API key** in Settings for smarter generation\n\n**Common documents:** Leave application, Experience certificate, Complaint letter, Medical certificate, Rent agreement, Official letter, NOC, Bonafide, Affidavit.`,
+            template: null, docType: null, theme: null, fields: []
+        };
+    }
+
+    const allTemplates = { ...ENGLISH_KNOWLEDGE.templates, ...KANNADA_KNOWLEDGE.templates };
+    const tmpl = allTemplates[bestKey];
+
+    // Detect language preference
+    const isKannada = /kannada|kannad|ಕನ್ನಡ|shuddha|karnataka/i.test(text) || /[ಅ-ಹ]/i.test(text);
+    const isEnglish = !isKannada;
+
+    // Use the appropriate language template
+    let source = isKannada && KANNADA_KNOWLEDGE.templates[bestKey] ? KANNADA_KNOWLEDGE.templates : ENGLISH_KNOWLEDGE.templates;
+    let finalTmpl = source[bestKey] || allTemplates[bestKey];
+
+    // Extract fields from template
+    const matches = [...finalTmpl.template.matchAll(/\{\{([^}]+)\}\}/g)];
+    const fields = [...new Set(matches.map(m => m[1].trim()))];
+
+    const docType = bestKey;
+    const theme = finalTmpl.theme || 'default';
+
+    const reply = `**Found a matching template!** ✅\n\n**Document Type:** ${finalTmpl.name}\n**Language:** ${finalTmpl.language === 'kannada' ? 'Kannada (ಶುದ್ಧ ಕನ್ನಡ)' : 'English'}\n**Theme:** ${THEMES[theme]?.name || theme}\n**Fields:** ${fields.length} placeholders\n\n[TEMPLATE]${finalTmpl.template}[/TEMPLATE]\n\n[DOCTYPE: ${docType}]\n[THEME: ${theme}]\n[FIELDS: ${fields.join(', ')}]`;
+
+    return { reply, template: finalTmpl.template, docType, theme, fields };
+}
+
 async function sendRequirement() {
     const text = document.getElementById('requirementInput').value.trim();
     if (!text && aiAction !== 'correct') { showToast('Describe what you need', 'error'); return; }
-    if (!aiConfig.apiKey) { showToast('Set API key in Settings', 'error'); toggleAISettings(); return; }
 
     addChatBubble(text || `(${aiAction} current document)`, 'user');
     document.getElementById('requirementInput').value = '';
     document.getElementById('typingIndicator').classList.remove('hidden');
     scrollChat();
 
+    // If no API key, use local template matcher
+    if (!aiConfig.apiKey) {
+        await new Promise(r => setTimeout(r, 600)); // Fake typing delay
+        document.getElementById('typingIndicator').classList.add('hidden');
+
+        const language = document.getElementById('reqLanguage').value;
+        const result = generateLocalResponse(text, language);
+
+        addChatBubble(result.reply, 'ai', true);
+
+        if (result.template) {
+            addChatAction('✅ Use This Document', () => {
+                const editor = document.getElementById('templateEditor');
+                editor.value = result.template;
+                window.formData = {};
+                if (result.docType) {
+                    window.currentDocType = result.docType;
+                    const badge = document.getElementById('docTypeBadge');
+                    badge.textContent = ENGLISH_KNOWLEDGE.templates[result.docType]?.name || KANNADA_KNOWLEDGE.templates[result.docType]?.name || result.docType;
+                    badge.classList.remove('hidden');
+                }
+                if (result.theme && THEMES[result.theme]) {
+                    selectTheme(result.theme);
+                } else {
+                    const suggestedTheme = docTypeToTheme(result.docType);
+                    if (suggestedTheme) selectTheme(suggestedTheme);
+                }
+                updateFromTemplate();
+                showToast('Document applied! Fill the fields on the left.');
+                closeAIComposer();
+            });
+            if (result.fields && result.fields.length > 0) {
+                addChatInfo(`📋 Fields: ${result.fields.join(', ')}`);
+            }
+            if (result.docType) {
+                addChatInfo(`📄 Type: ${result.docType}`);
+            }
+            if (result.theme) {
+                addChatInfo(`🎨 Theme: ${THEMES[result.theme]?.name || result.theme}`);
+            }
+        }
+        scrollChat();
+        return;
+    }
+
+    // API mode (with key)
     const currentTemplate = document.getElementById('templateEditor').value;
     const language = document.getElementById('reqLanguage').value;
     const tone = document.getElementById('reqTone').value;
@@ -129,7 +233,7 @@ async function sendRequirement() {
                     if (suggestedTheme) selectTheme(suggestedTheme);
                 }
                 updateFromTemplate();
-                showToast('Document applied! Fill the fields on the left.', 'success');
+                showToast('Document applied! Fill the fields on the left.');
                 closeAIComposer();
             });
             if (extracted.fields && extracted.fields.length > 0) {
@@ -144,7 +248,18 @@ async function sendRequirement() {
         }
     } catch (err) {
         document.getElementById('typingIndicator').classList.add('hidden');
-        addChatBubble('Error: ' + err.message + '\n\nCheck API key and endpoint in Settings.', 'ai', true);
+        addChatBubble('Error: ' + err.message + '\n\nFalling back to local templates...', 'ai', true);
+        // Fallback to local on error
+        const result = generateLocalResponse(text, language);
+        addChatBubble(result.reply, 'ai', true);
+        if (result.template) {
+            addChatAction('✅ Use This Document', () => {
+                document.getElementById('templateEditor').value = result.template;
+                window.formData = {};
+                updateFromTemplate();
+                closeAIComposer();
+            });
+        }
     }
     scrollChat();
 }
@@ -162,7 +277,7 @@ CRITICAL RULES:
 7. Include a DOCUMENT TYPE label: [DOCTYPE: detected_type]
 8. Include a FIELD LIST: [FIELDS: field1, field2, field3...]
 9. The template itself should be between [TEMPLATE] and [/TEMPLATE] tags.
-10. Make the document look complete and professional — include proper headers, salutations, body structure, and closings appropriate to the document type.
+10. Make the document look complete and professional — include proper headers, salutations, body, and closings appropriate to the document type.
 11. If the user asks to modify, intelligently ADD or REMOVE fields and sections based on their request while preserving existing content.
 12. For English, use formal connectors: Furthermore, However, Therefore, Consequently, In addition, Moreover.
 13. For Kannada, use proper formal honorifics: ಮಾನ್ಯ, ಶ್ರೀಮಾನ್, ಶ್ರೀಮತಿ, ದಯವಿಟ್ಟು, ವಿಶ್ವಾಸದಿಂದ.
@@ -234,15 +349,11 @@ Requirements:
 function extractStructuredResponse(reply) {
     const template = reply.match(/\[TEMPLATE\]([\s\S]*?)\[\/TEMPLATE\]/)?.[1]?.trim() ||
         (reply.includes('{{') ? extractTemplateFromReply(reply) : null);
-
     const docType = reply.match(/\[DOCTYPE:\s*([^\]]+)\]/)?.[1]?.trim() ||
         reply.match(/Document Type[\s\w]*:\s*(\w+)/i)?.[1]?.trim() || '';
-
     const theme = reply.match(/\[THEME:\s*([^\]]+)\]/)?.[1]?.trim() || '';
-
     const fieldsMatch = reply.match(/\[FIELDS:\s*([^\]]+)\]/);
     const fields = fieldsMatch ? fieldsMatch[1].split(',').map(f => f.trim()).filter(Boolean) : [];
-
     return { template, docType, theme, fields };
 }
 
@@ -279,7 +390,7 @@ function addChatAction(label, onClick) {
     const div = document.createElement('div');
     div.className = 'flex gap-2 mt-1 ml-1 fade-in';
     const btn = document.createElement('button');
-    btn.className = 'text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold shadow-sm transition cursor-pointer';
+    btn.className = 'chat-action-btn';
     btn.textContent = label;
     btn.onclick = onClick;
     div.appendChild(btn);
@@ -324,6 +435,7 @@ function detectDocType(text) {
         affidavit: ['affidavit', 'declaration', 'sworn', 'oath', 'pramana', 'halafnama'],
         request: ['request', 'permission', 'approval', 'sanction', 'permit', 'vinanti'],
         resignation: ['resign', 'resignation', 'quit', 'notice', 'relieving', 'separation'],
+        notice: ['notice', 'circular', 'staff notice', 'memo', 'office order', 'instruction', 'attendance', 'kams', 'mark attendance', 'seriously', 'staff memo', 'disciplinary', 'warning', 'all staff'],
         medicalCertificate: ['medical certificate', 'justification', 'admission', 'discharge', 'diagnosis', 'hospital', 'enteric', 'fever', 'patient'],
         medicalLabReport: ['lab report', 'laboratory', 'investigation', 'blood test', 'fbs', 'ppbs', 'haemoglobin', 'widal', 'dengue'],
         officialLetter: ['official letter', 'government letter', 'panchayat', 'demolition', 'memo', 'phc', 'department letter', 'gram panchayat'],
@@ -342,7 +454,7 @@ function docTypeToTheme(docType) {
         leave: 'school', justification: 'government', complaint: 'government',
         noc: 'corporate', experience: 'corporate', bonafide: 'school',
         rent: 'legal', affidavit: 'legal', request: 'default',
-        resignation: 'corporate', offer: 'corporate', application: 'default',
+        notice: 'government', resignation: 'corporate', offer: 'corporate', application: 'default',
         medical: 'medical', school: 'school', government: 'government',
         medicalCertificate: 'medical', medicalLabReport: 'medical',
         officialLetter: 'government', governmentLetterhead: 'government',
@@ -370,3 +482,5 @@ window.renderMarkdown = renderMarkdown;
 window.scrollChat = scrollChat;
 window.detectDocType = detectDocType;
 window.docTypeToTheme = docTypeToTheme;
+window.findBestTemplate = findBestTemplate;
+window.generateLocalResponse = generateLocalResponse;
